@@ -15,8 +15,6 @@ app.use(express.json());
 
 app.get("/api/tasks", async (req: Request, res: Response) => {
     try{
-
-        //var tasks = await taskRepository.getAllAsync();
         var result = await getTasks();
         res.json(result);
 
