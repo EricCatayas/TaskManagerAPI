@@ -6,9 +6,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// build command: npx tsc
-// run command: node dist/app.js
-
 const port = process.env.PORT || 3000;
 
 
