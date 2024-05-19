@@ -1,25 +1,27 @@
 
 import express, { Request, Response } from "express";
-const { TaskRepository } = require("./services/TaskRepository");
+import { getTasks, createTask, updateTask, deleteTask } from "./database/database";
 import cors from 'cors'; 
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// build command: npx tsc
+// run command: node dist/app.js
 
 const port = process.env.PORT || 3000;
+
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// build command: npx tsc
-// run command: node dist/app.js
-
-var taskRepository = new TaskRepository();
-
-
 app.get("/api/tasks", async (req: Request, res: Response) => {
     try{
 
-        var tasks = await taskRepository.getAllAsync();
-        res.json(tasks);
+        //var tasks = await taskRepository.getAllAsync();
+        var result = await getTasks();
+        res.json(result);
 
     } 
     catch(error){
@@ -28,27 +30,42 @@ app.get("/api/tasks", async (req: Request, res: Response) => {
 });
 
 app.post("/api/tasks", async (req: Request, res: Response) => {
-  const newTask = req.body
-  console.log(newTask);
-  await taskRepository.createAsync(newTask);
-  res.status(201).json(newTask); 
+  try{
+    const newTask = req.body
+    console.log(newTask);
+    const { title, status, color } = newTask;
+
+    await createTask(title, status, color);
+
+    res.status(201).json(newTask); 
+
+  } catch(error:any) {
+    res.status(400).send({ error: error.message });
+  }
+  
 });
 
-app.put("/api/tasks/:id", (req: Request, res: Response) => {
-  const id = req.params.id;
-  const updatedTask = req.body; // Assuming req.body contains the updated resource data
+app.put("/api/tasks/:id", async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const updatedTask = req.body;
   
-//   const index = resources.findIndex((r) => r.id === id);
-//   if (index === -1) {
-//     return res.status(404).json({ error: "Resource not found" });
-//   }
+  const { title, status, color } = updatedTask;
+
+  if (isNaN(id)) {
+    res.status(400).send({ error: "Invalid ID format" });
+    return;
+  }
+
+  await updateTask(id, title, status, color);
 
   res.status(201).json(updatedTask);
 });
 
 app.delete("/api/tasks/:id", async (req: Request, res: Response) => {
-  const id = req.params.id;
-  await taskRepository.deleteAsync(id);
+  const id = Number(req.params.id);
+
+  await deleteTask(id);
+
   res.status(201);
 });
 
